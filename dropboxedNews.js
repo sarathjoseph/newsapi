@@ -76,6 +76,7 @@ app.get('/callback', function (req, res) {
                 token = data.access_token;
 				uid = data.uid;
 				
+				log('Server Logged In: Token:'+token +'UID:'+uid);
 							
 				
                 // use the bearer token to make API calls
@@ -87,48 +88,25 @@ app.get('/callback', function (req, res) {
         });
 });
 
-app.get('/insert', function (req, res) {
-
-	var client = new dropbox.Client
-				({
-					key: APP_KEY,
-					secret: APP_SECRET,
-					token: token,
-					uid:uid
-				});		
-
-	var datastoreManager = client.getDatastoreManager();
-	datastoreManager.openDefaultDatastore(function (error, datastore) {
-		if (error) {
-			 console.log('Error opening default datastore: ' + error);
-		}					
-		
-		var articleTable = datastore.getTable('article');
-		
-		var firstTask = articleTable.insert({
-			url: 'http://www.theguardian.com/artanddesign/2013/oct/24/nigel-milsom-wins-art-prize',
-			created: new Date()
-		});
-	});
-	res.send('Row inserted');
-
-});
-
 app.get('/search', function (req, res) {
 	
 	
 	var url_parts = url.parse(req.url, true);
-	var query = url_parts.query;
+	var query = url_parts.query.q;
 	res.setHeader('Content-Type', 'text/json');
 	nyt = require('./newyorktimes');
-	nyt.getData(query.q,res,function (response) {
-		saveResponse(response);
-		res.write(response);
-		res.end();
+	
+	log('Search "'+ query + '" Recived');
+
+	nyt.getData(query, function (query, response) {
+		saveResponse(query, response,function (response){
+			res.write(JSON.stringify(response));
+			res.end();	
+		});		
 	});
 });
 
-function saveResponse(response){
+function saveResponse(query, articles, callback){
 	var client = new dropbox.Client
 				({
 					key: APP_KEY,
@@ -136,22 +114,146 @@ function saveResponse(response){
 					token: token,
 					uid:uid
 				});		
-
+				
+	
+	log('Search "' + query +'" Sent to Dropbox');
+	
 	var datastoreManager = client.getDatastoreManager();
 	datastoreManager.openDefaultDatastore(function (error, datastore) {
 		if (error) {
-			 console.log('Error opening default datastore: ' + error);
+			 
+			 log('Error opening default datastore: ' + error);
 		}					
 		
 		var searchTable = datastore.getTable('searches');
 		
-		var firstTask = searchTable.insert({
-			created: new Date(),
-			data: response			
+		var search = searchTable.insert({
+			query: query,
+			date: new Date(),
+			data: JSON.stringify(articles)			
 		});
-	});
-	console.log('Search Saved');
+		
+		
+		log('Search "' + query +'" Saved. id:'+search.getId());
+		
+		var response = {
+			id: search.getId(),
+			articles: articles		
+		};
+		
+		callback(response);
+		
+	});	
+}
+
+app.get('/searches/:id', function (req, res) {
+
+	res.setHeader('Content-Type', 'text/json');
+	var id = req.params.id;
+	
+    log('Retriving id:"'+ id + '"');
+    var client = new dropbox.Client
+                ({
+                    key: APP_KEY,
+                    secret: APP_SECRET,
+                    token: token,
+                    uid:uid
+                });        
+
+    var datastoreManager = client.getDatastoreManager();
+    datastoreManager.openDefaultDatastore(function (error, datastore) {
+        if (error) {
+             log('Error opening default datastore: ' + error);
+        }                    
+        
+        var searchTable = datastore.getTable('searches');
+        var search = searchTable.get(id);		
+		res.send(JSON.parse(search.get('data')));		
+		log('id:"'+ id + '" Fetch Completed.');
+    });
+});
+
+app.get('/searches/:id/save/:index', function (req, res) {
+
+	res.setHeader('Content-Type', 'text/json');
+	var id = req.params.id;
+	var index = req.params.index;
+    log('Saving index:"'+ index + '" of search "'+id+ '"');
+	
+    var client = new dropbox.Client
+                ({
+                    key: APP_KEY,
+                    secret: APP_SECRET,
+                    token: token,
+                    uid:uid
+                });        
+
+    var datastoreManager = client.getDatastoreManager();
+    datastoreManager.openDefaultDatastore(function (error, datastore) {
+        if (error) {
+             log('Error opening default datastore: ' + error);
+        }                    
+        
+        var searchTable = datastore.getTable('searches');
+        var search = searchTable.get(id);
+		var searchData = JSON.parse(search.get('data'));
+
+		var articlesTable = datastore.getTable('articles');
+		
+		var article = articlesTable.insert({
+			date: new Date(),
+			data: JSON.stringify(searchData[index])		
+		});
+		
+		res.send('Index:"'+ index + '" of search "'+id+ '" Saved');		
+		log('Index:"'+ index + '" of search "'+id+ '" Saved');
+    });
+});
+
+app.get('/searches', function (req, res) {
+	
+    log('History was retrived');
+    var client = new dropbox.Client
+                ({
+                    key: APP_KEY,
+                    secret: APP_SECRET,
+                    token: token,
+                    uid:uid
+                });        
+
+    var datastoreManager = client.getDatastoreManager();
+    datastoreManager.openDefaultDatastore(function (error, datastore) {
+        if (error) {
+             log('Error opening default datastore: ' + error);
+        }                    
+        
+        var searchTable = datastore.getTable('searches');
+        var results = searchTable.query();
+		var response = new Array();
+        for (i = 0; i < results.length; i++) {
+			
+			var search = {
+				id: results[i].getId(),
+				date: results[i].get('date'),				
+				query: results[i].get('query'),
+				articles: JSON.parse(results[i].get('data'))			
+			};
+						
+            response.push(search);
+        }
+		res.send(response);
+        
+    });
+});
+
+
+function log(msg){
+	var now = new Date();
+	console.log(now.getHours()*10000+now.getMinutes()+now.getSeconds() + ' : ' + msg);
 }
 
 
+
 app.listen(5000);
+now = new Date();
+console.log(now.getHours()*10000+now.getMinutes()+now.getSeconds()+': Server Started');

@@ -5,23 +5,22 @@ var     request = require('request'),
 var		NTY_API_KEY = 'c3a958f43f94d1d39a6228faa8fe483b:11:68109101';
 var		response;
 		
-var getData = function (q,res,callback) {
-		response = res;
-        request.get('http://api.nytimes.com/svc/search/v2/articlesearch.json?q='+q+'&api-key='+NTY_API_KEY, function (error, response, body) {
+var getData = function (query,callback) {
+		
+        request.get('http://api.nytimes.com/svc/search/v2/articlesearch.json?q='+query+'&api-key='+NTY_API_KEY, function (error, response, body) {
 						
-                        parse(body,res,callback);
+                        parse(query,body,callback);
 						
                 });				
 }
 
-function parse(response,res,callback) {
+function parse(query,response,callback) {
         jsonObject = JSON.parse(response);		
 		articles = jsonObject["response"]["docs"];
 		parsedArticles = new Array();		
 		
 		for (i = 0; i < articles.length; i++) {
             parsedArticle = {
-				"index":i, 
                 "url": articles[i]['web_url'],
                 "source": articles[i]['source'],
                 "headline": articles[i]['headline']['main'],
@@ -33,7 +32,7 @@ function parse(response,res,callback) {
 			parsedArticles.push(parsedArticle);
         }		
 		
-		callback(JSON.stringify(parsedArticles));
+		callback(query, parsedArticles);
 }
 
 
