@@ -1,14 +1,17 @@
 var crypto = require('crypto'),
         express = require('express'),
         request = require('request'),
-        url = require('url');
-
+        url = require('url'),
+        swagger = require("swagger-node-express");
 
 		
 var app = express();
 app.use(express.cookieParser());
+app.use(express.bodyParser());
 
-var dropbox = require('./dropbox-datastores-1.0-latest.js');
+swagger.setAppHandler(app);
+
+var dropbox = require('./dropbox-datastores-1.0.0.js');
 var APP_KEY = 't9hj8x7whf52syq';
 var APP_SECRET = 'y4ku3uomqxc0ecd';
 var token;

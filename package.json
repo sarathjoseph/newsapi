@@ -1,0 +1,10 @@
+{
+	"name": "newsapi",
+	"version": "0.0.1",
+	"dependencies": {
+		"express" : "*",
+		"request" : "*",
+		"swagger-node-express" : "*",
+		"xhr2" : "*"
+	}
+}
