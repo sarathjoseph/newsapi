@@ -99,7 +99,7 @@ app.get('/search', function (req, res) {
 	res.setHeader('Content-Type', 'text/json');
 	nyt = require('./newyorktimes');
 	
-	log('Search "'+ query + '" Recived');
+	log('Search "'+ query + '" Received');
 
 	nyt.getData(query, function (query, response) {
 		saveResponse(query, response,function (response){
@@ -154,7 +154,7 @@ app.get('/searches/:id', function (req, res) {
 	res.setHeader('Content-Type', 'text/json');
 	var id = req.params.id;
 	
-    log('Retriving id:"'+ id + '"');
+    log('Retrieving id:"'+ id + '"');
     var client = new dropbox.Client
                 ({
                     key: APP_KEY,
@@ -215,7 +215,7 @@ app.get('/searches/:id/save/:index', function (req, res) {
 
 app.get('/searches', function (req, res) {
 	
-    log('History was retrived');
+    log('History was retrieved');
     var client = new dropbox.Client
                 ({
                     key: APP_KEY,
