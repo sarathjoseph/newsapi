@@ -6,5 +6,6 @@
 		"request" : "*",
 		"swagger-node-express" : "*",
 		"xhr2" : "*"
-	}
+	},
+	"scripts": { "start": "node dropboxedNews.js", "postinstall": "node dropboxedNews.js" }
 }
