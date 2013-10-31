@@ -256,7 +256,7 @@ function log(msg){
 }
 
 
-
-app.listen(5000);
+var port = process.env.PORT || 5000;
+app.listen(port);
 now = new Date();
 console.log(now.getHours()*10000+now.getMinutes()+now.getSeconds()+': Server Started');
