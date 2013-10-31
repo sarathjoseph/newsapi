@@ -1,0 +1,1 @@
+cmd node dropboxedNews.js
