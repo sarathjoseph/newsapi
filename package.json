@@ -6,7 +6,8 @@
 		"express" : "*",
 		"request" : "*",
 		"xhr2" : "*",
-		"apidoc" : "*"
+		"apidoc" : "*",
+		"nodetime" : "*"
 	},
 	"scripts": { "start": "node dropboxedNews.js", "postinstall": "apidoc -f 'dropboxedNews.js'" }
 }
