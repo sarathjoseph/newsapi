@@ -16,6 +16,7 @@ var getData = function (query,callback) {
 
 function parse(query,response,callback) {
         jsonObject = JSON.parse(response);		
+        if (jsonObject["response"]){  
 		articles = jsonObject["response"]["docs"];
 		parsedArticles = new Array();		
 		
@@ -33,6 +34,10 @@ function parse(query,response,callback) {
         }		
 		
 		callback(query, parsedArticles);
+    }else{
+
+        callback(query, new Array());
+    }
 }
 
 
