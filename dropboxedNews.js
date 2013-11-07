@@ -5,12 +5,13 @@ var crypto = require('crypto'),
 
 var app = express();
 app.use(express.cookieParser());
+app.use('/doc', express.static(__dirname + '/doc'));
 
 var dropbox = require('./dropbox-datastores-1.0.0.js');
-var APP_KEY = 't9hj8x7whf52syq';
-var APP_SECRET = 'y4ku3uomqxc0ecd';
-var token = 'YHd3kwx_9b4AAAAAAAAAAaceJyXlAkZECcOeX2Q8A9hE2rXot7R2jzs-rY9_ln6-';
-var uid = '91667051';
+var APP_KEY = '7q7adihsfad66iy';
+var APP_SECRET = 'k6jfa0784303pwm';
+var token = '';
+var uid = '';
 
 function generateCSRFToken() {
         return crypto.randomBytes(18).toString('base64')
@@ -25,6 +26,14 @@ function generateRedirectURI(req) {
         });
 }
 
+/**
+ * @api {get} /admin/login Authenticates user
+ * @apiversion 0.0.1
+ * @apiName GetLogin
+ * @apiGroup Authentication
+ *
+ * @apiDescription User can only login via the web. Use the provided URI to access the application via Dropbox.
+ */
 app.get('/admin/login', function (req, res) {
         var csrfToken = generateCSRFToken();
         res.cookie('csrf', csrfToken);
@@ -41,6 +50,14 @@ app.get('/admin/login', function (req, res) {
         }));
 });
 
+/**
+ * @api {get} /admin/callback  Authentication callback
+ * @apiversion 0.0.1
+ * @apiName GetLoginCallback
+ * @apiGroup Authentication
+ *
+ * @apiDescription Dropbox will callback to this URI to complete the login process within the API.
+ */
 app.get('/admin/callback', function (req, res) {
         if (req.query.error) {
                 return res.send('ERROR ' + req.query.error + ': ' + req.query.error_description);
@@ -82,11 +99,73 @@ app.get('/admin/callback', function (req, res) {
                 request.get('https://api.dropbox.com/1/account/info', {
                         headers: { Authorization: 'Bearer ' + token }
                 }, function (error, response, body) {
-                        res.send('Server in successfully as ' + JSON.parse(body).display_name + '.');
+                        res.send('Logged in successfully as ' + JSON.parse(body).display_name + '.');
                 });
         });
 });
 
+/**
+ * @api {get} /query/:query Queries news sources and returns results from these sources.
+ * @apiversion 0.0.1
+ * @apiName GetQuery
+ * @apiGroup Query
+ *
+ * @apiParam {String} query A specific query.
+ *
+ * @apiSuccess {String} id Identifier of the search query.
+ * @apiSuccess {String[]} articles Articles with results in JSON.
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *			"id": "_17ahev6k9i0_js_kUa2d",
+ *		  	"articles": [
+ *		    {
+ *		      "url": "http://www.nytimes.com/2013/11/04/sports/baseball/in-rodriguez-arbitration-two-sides-play-hardball.html",
+ *		      "source": "The New York Times",
+ *		      "headline": "In Rodriguez Arbitration, Two Sides Play Hardball",
+ *		      "snippet": "In the months since several players were linked to a Florida anti-aging clinic, Major League Baseball and Alex Rodriguez have engaged in a cloak-and-dagger struggle surpassing anything the sport has seen.",
+ *		      "pub_date": "2013-11-04T00:00:00Z",
+ *		      "section_name": "Sports",
+ *		      "type_of_material": "News"
+ *		    },
+ *		    {
+ *		      "url": "http://select.nytimes.com/gst/abstract.html?res=9D03E0DC1531E63ABC4952DFBE66838C649EDE",
+ *		      "source": "The New York Times",
+ *		      "headline": "Major Sports News",
+ *		      "snippet": "Don Drysdale pitched a sevenhitter yesterday as the Dodgers shut out the Pirates, 3 to 0. The Yankees defeated the Orioles,...",
+ *		      "pub_date": "1957-08-11T00:00:00Z",
+ *		      "section_name": null,
+ *		      "type_of_material": "Front Page"
+ *		    },
+ *		    {
+ *		      "url": "http://www.nytimes.com/1985/11/15/sports/transactions-156837.html",
+ *		      "source": "The New York Times",
+ *		      "headline": "Transactions",
+ *		      "snippet": "  BOSTON (AL) -Released Jim Dorsey, pitcher. Assigned Dave Sax, catcher, and LaSchelle Tarver and Gus Burgess, outfielders, to Pawtucket of the International League.",
+ *		      "pub_date": "1985-11-15T00:00:00Z",
+ *		      "section_name": "Sports",
+ *		      "type_of_material": "List"
+ *		    },
+ *		    ...
+ *     }
+ *
+ * @apiError ArticlesNotFound The articles were not found.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "Articles Not Found"
+ *     }
+ *
+ * @apiError BadParameters Search used bad parameters.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 400 Bad Content
+ *     {
+ *       "Bad Parameters"
+ *     }
+ */
 app.get('/query/:query', function (req, res) {
 
 	
@@ -156,6 +235,45 @@ function saveResponse(query, articles, callback){
 	});	
 }
 
+
+/**
+ * @api {get} /searches Returns a list of searches
+ * @apiversion 0.0.1
+ * @apiName GetSearches
+ * @apiGroup Search
+ *
+ * @apiSuccess {String} id Identifier of the search query.
+ * @apiSuccess {String[]} data Data returned as stored results.
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *			"id": "_17ahd0srgi0_js_GXaeN",
+ *   		"data": {
+ *     			"date": "2013-11-07T00:22:12.200Z",
+ *     			"query": "baseball",
+ *     			"articles": [
+ *       		{
+ *         			"url": "http://www.nytimes.com/2013/11/04/sports/baseball/in-rodriguez-arbitration-two-sides-play-hardball.html",
+ *         			"source": "The New York Times",
+ *         			"headline": "In Rodriguez Arbitration, Two Sides Play Hardball",
+ *         			"snippet": "In the months since several players were linked to a Florida anti-aging clinic, Major League Baseball and Alex Rodriguez have engaged in a cloak-and-dagger struggle surpassing anything the sport has seen.",
+ *         			"pub_date": "2013-11-04T00:00:00Z",
+ *         			"section_name": "Sports",
+ *         			"type_of_material": "News"
+ *       		},
+ *       		...
+ *       	}
+ *     }
+ *
+ * @apiError NoSearchesFound There are no searches stored.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "No searches found"
+ *     }
+ */
 app.get('/searches', function (req, res) {
 	
 	res.setHeader('Content-Type', 'text/json');
@@ -199,6 +317,38 @@ app.get('/searches', function (req, res) {
     });
 });
 
+/**
+ * @api {get} /searches/:id Returns a specific result from a search
+ * @apiversion 0.0.1
+ * @apiName GetSearchesWithId
+ * @apiGroup Search
+ *
+ * @apiParam {String} id A specific identifier.
+ *
+ * @apiSuccess {String[]} N/A Search result in form of JSON.
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *			{
+ *		    	"url": "http://www.nytimes.com/2013/11/04/sports/baseball/in-rodriguez-arbitration-two-sides-play-hardball.html",
+ *		    	"source": "The New York Times",
+ *		    	"headline": "In Rodriguez Arbitration, Two Sides Play Hardball",
+ *		    	"snippet": "In the months since several players were linked to a Florida anti-aging clinic, Major League Baseball and Alex Rodriguez have engaged in a cloak-and-dagger struggle surpassing anything the sport has seen.",
+ *		    	"pub_date": "2013-11-04T00:00:00Z",
+ *		    	"section_name": "Sports",
+ *		    	"type_of_material": "News"
+ *			},
+ *     }
+ *
+ * @apiError SearchIdNotFound Search results cannot be found with the id provided.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "Search Id Not Found"
+ *     }
+ */
 app.get('/searches/:id', function (req, res) {
 
 	res.setHeader('Content-Type', 'text/json');
@@ -233,6 +383,25 @@ app.get('/searches/:id', function (req, res) {
     });
 });
 
+/**
+ * @api {get} /searches/:id/save/:index/:folder Saves a specific index (result) to a folder from a specific query
+ * @apiversion 0.0.1
+ * @apiName SaveResultWithIndexAndId
+ * @apiGroup Save
+ *
+ * @apiParam {String} id A specific identifier.
+ * @apiParam {Number} index Position of article in question.
+ * @apiParam {String} folder Name of folder.
+ *
+ * @apiSuccess {String} Confirmation of saved index in specified folder
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *			"Index: '2' of search '_17ahd0srgi0_js_GXae' saved"
+ *     }
+ *
+ */
 app.get('/searches/:id/save/:index/:folder', function (req, res) {
 
 	res.setHeader('Content-Type', 'text/json');
@@ -269,11 +438,33 @@ app.get('/searches/:id/save/:index/:folder', function (req, res) {
 			url: JSON.stringify(searchData[index]['url'])
 		});
 		
-		res.send('Index:"'+ index + '" of search "'+id+ '" Saved');		
-		log('Index:"'+ index + '" of search "'+id+ '" Saved');
+		res.send("Index:'"+ index + "' of search '"+id+ "' saved");		
+		log("Index:'"+ index + "' of search '"+id+ "' saved");
     });
 });
 
+
+/**
+ * @api {get} /folders Returns a list of folders
+ * @apiversion 0.0.1
+ * @apiName GetFolders
+ * @apiGroup Folders
+ *
+ * @apiSuccess {String[]} data Results within a specific folder in form of JSON.
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *     }
+ *
+ * @apiError NoFoldersFound There are no folders found.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "No Folders found"
+ *     }
+ */
 app.get('/folders', function (req, res) {
 
 	res.setHeader('Content-Type', 'text/json');
@@ -311,6 +502,29 @@ app.get('/folders', function (req, res) {
     });
 });
 
+/**
+ * @api {get} /folders/:id Returns results from a specific folder
+ * @apiversion 0.0.1
+ * @apiName GetFoldersWithId
+ * @apiGroup Folders
+ *
+ * @apiParam {String} id A specific identifier.
+ *
+ * @apiSuccess {String[]} data Results within a specific folder in form of JSON.
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *     }
+ *
+ * @apiError NoSearchesFound There are no searches stored.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "Folder '3' Not Found"
+ *     }
+ */
 app.get('/folders/:id', function (req, res) {
 	
 
@@ -348,10 +562,31 @@ app.get('/folders/:id', function (req, res) {
 			}
 			res.send(response);
 		}else {
-			res.send(404, 'Folder "'+id+'" Not Found');
+			res.send(404, "Folder '"+id+"' Not Found");
 		}
         
     });
+});
+
+app.get('/docs', function(req, res){
+	res.redirect('doc/index.html');
+});
+
+/**
+ * @api {get} / Base API URI
+ * @apiversion 0.0.1
+ * @apiName GetBase
+ * @apiGroup General
+ *
+ * @apiError BadRequest There's nothing here.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *     }
+ */
+app.get('/', function(req, res){
+	res.send(400);
 });
 
 function log(msg){

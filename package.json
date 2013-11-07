@@ -1,11 +1,12 @@
 {
 	"name": "newsapi",
 	"version": "0.0.1",
+	"description": "NewsAPI is a unified search function offered through a middleware, that interfaces with multiple international news sites with Dropbox integration.",
 	"dependencies": {
 		"express" : "*",
 		"request" : "*",
-		"swagger-node-express" : "*",
-		"xhr2" : "*"
+		"xhr2" : "*",
+		"apidoc" : "*"
 	},
-	"scripts": { "start": "node dropboxedNews.js", "postinstall": "node dropboxedNews.js" }
+	"scripts": { "start": "node dropboxedNews.js", "postinstall": "apidoc -f 'dropboxedNews.js'; node dropboxedNews.js" }
 }
