@@ -5,12 +5,13 @@ var crypto = require('crypto'),
 
 var app = express();
 app.use(express.cookieParser());
+app.use(express.bodyParser());
 app.use('/doc', express.static(__dirname + '/doc'));
 
 var dropbox = require('./dropbox-datastores-1.0.0.js');
-var APP_KEY = '7q7adihsfad66iy';
-var APP_SECRET = 'k6jfa0784303pwm';
-var token = '';
+var APP_KEY = 't9hj8x7whf52syq';
+var APP_SECRET = 'y4ku3uomqxc0ecd';
+var token = 'SNNdnCmv6V4AAAAAAAAAAVOQdVyA2VNbGfghKl0oVCEIhhrLMHTS_mkpN2qfXsPT';
 var uid = '';
 
 function generateCSRFToken() {
@@ -384,9 +385,9 @@ app.get('/searches/:id', function (req, res) {
 });
 
 /**
- * @api {get} /searches/:id/save/:index/:folder Saves a specific index (result) to a folder from a specific query
+ * @api {post} /searches/:id Saves a specific index (result) to a folder from a specific query
  * @apiversion 0.0.1
- * @apiName SaveResultWithIndexAndId
+ * @apiName SaveResult
  * @apiGroup Save
  *
  * @apiParam {String} id A specific identifier.
@@ -401,46 +402,78 @@ app.get('/searches/:id', function (req, res) {
  *			"Index: '2' of search '_17ahd0srgi0_js_GXae' saved"
  *     }
  *
+ * @apiError SearchIdNotFound Search results cannot be found with the id provided.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "Search Id Not Found"
+ *     } 
+ *
+ * @apiError InvalidParameters Invalid Index or Folder Parameters.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 400 Bad request
+ *     {
+ *       "Invalid Parameters"
+ *     }
  */
-app.get('/searches/:id/save/:index/:folder', function (req, res) {
+app.post('/searches/:id', function (req, res) {
 
 	res.setHeader('Content-Type', 'text/json');
 	
 	var id = req.params.id;
-	var index = req.params.index;
-	var folder = req.params.folder;
-
-    log('Saving index:"'+ index + '" of search "'+id+ '"');
 	
-    var client = new dropbox.Client
-                ({
-                    key: APP_KEY,
-                    secret: APP_SECRET,
-                    token: token,
-                    uid:uid
-                });        
+	if (req.body.index && req.body.folder){
+	
+		var index = req.body.index;
+		var folder = req.body.folder;
 
-    var datastoreManager = client.getDatastoreManager();
-    datastoreManager.openDefaultDatastore(function (error, datastore) {
-        if (error) {
-             log('Error opening default datastore: ' + error);
-        }                    
-        
-        var searchTable = datastore.getTable('searches');
-        var search = searchTable.get(id);
-		var searchData = JSON.parse(search.get('data'));
-
-		var articlesTable = datastore.getTable('articles');
+		log('Saving index:"'+ index + '" of search "'+id+ '"');
 		
-		var article = articlesTable.insert({
-			folder: folder,
-			date: new Date(),
-			url: JSON.stringify(searchData[index]['url'])
+		var client = new dropbox.Client
+					({
+						key: APP_KEY,
+						secret: APP_SECRET,
+						token: token,
+						uid:uid
+					});        
+
+		var datastoreManager = client.getDatastoreManager();
+		datastoreManager.openDefaultDatastore(function (error, datastore) {
+			if (error) {
+				 log('Error opening default datastore: ' + error);
+			}                    
+			
+			var searchTable = datastore.getTable('searches');
+			var search = searchTable.get(id);
+			
+			
+			if (search != null){
+			
+				var searchData = JSON.parse(search.get('data'));
+
+				var articlesTable = datastore.getTable('articles');
+				
+				var article = articlesTable.insert({
+					folder: folder,
+					date: new Date(),
+					url: JSON.stringify(searchData[index]['url'])
+				});
+				
+				res.send("Index:'"+ index + "' of search '"+id+ "' saved");		
+				log("Index:'"+ index + "' of search '"+id+ "' saved");
+
+			}else{
+				res.send(404, 'Search Id Not Found');	
+				log('id:"'+ id + 'Search Id Not Found');
+			}
+		
 		});
-		
-		res.send("Index:'"+ index + "' of search '"+id+ "' saved");		
-		log("Index:'"+ index + "' of search '"+id+ "' saved");
-    });
+	}else{
+			res.send(400 , 'Invalid Parameters.');	
+			log('Save: Invalid Parameters.');
+		}
 });
 
 
@@ -591,11 +624,10 @@ app.get('/', function(req, res){
 
 function log(msg){
 	var now = new Date();
-	console.log(now.getHours()*10000+now.getMinutes()+now.getSeconds() + ' : ' + msg);
+	console.log((1000000+(now.getHours()*10000 + now.getMinutes()*100 + now.getSeconds())).toString().substring(1,7) + ' : ' + msg);
 }
 
 var port = process.env.PORT || 5000;
 app.listen(port);
 
-now = new Date();
-console.log(now.getHours()*10000+now.getMinutes()+now.getSeconds()+': Server Started');
+log('Server Started');
