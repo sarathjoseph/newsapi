@@ -1,3 +1,8 @@
+require('nodetime').profile({
+    accountKey: '6cd4e0b1dd65c87991614cf404d53c90503551b3', 
+    appName: 'NewsAPI'
+  });
+
 var crypto = require('crypto'),
         express = require('express'),
         request = require('request'),
