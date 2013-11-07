@@ -8,5 +8,5 @@
 		"xhr2" : "*",
 		"apidoc" : "*"
 	},
-	"scripts": { "start": "node dropboxedNews.js", "postinstall": "apidoc -f 'dropboxedNews.js'; node dropboxedNews.js" }
+	"scripts": { "start": "node dropboxedNews.js", "postinstall": "apidoc -f 'dropboxedNews.js'" }
 }
