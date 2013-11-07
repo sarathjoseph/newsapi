@@ -488,6 +488,12 @@ app.post('/searches/:id', function (req, res) {
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
  *     {
+ *			[
+ *			  	"Web",
+ *			  	"Internet",
+ *			  	"News",
+ *			  	"Informations"
+ *			]
  *     }
  *
  * @apiError NoFoldersFound There are no folders found.
@@ -543,12 +549,15 @@ app.get('/folders', function (req, res) {
  *
  * @apiParam {String} id A specific identifier.
  *
- * @apiSuccess {String[]} data Results within a specific folder in form of JSON.
+ * @apiSuccess {String} date Date of article.
+ * @apiSuccess {String} article URL of article.
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
- *     {
- *     }
+ *	   {
+ *  		"date": "2013-10-31T09:32:03.999Z",
+ *  		"article": "http://health.nytimes.com/health/guides/disease/hodgkins-lymphoma/overview.html"
+ *		}
  *
  * @apiError NoSearchesFound There are no searches stored.
  *
@@ -588,7 +597,7 @@ app.get('/folders/:id', function (req, res) {
 			
 				var article = {
 					date: results[i].get('date'),
-					article: JSON.parse(results[i].get('data'))['url']								
+					article: JSON.parse(results[i].get('url'))							
 				};
 							
 				response.push(article);
