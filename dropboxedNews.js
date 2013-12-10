@@ -510,6 +510,11 @@
             }
         });
 
+        app.get('/docs', function(req, res){
+            res.redirect('doc/index.html');
+        });
+
+
         function log(msg) {
             var now = new Date();
             console.log(now.getHours() * 10000 + now.getMinutes() + now.getSeconds() + ' : ' + msg);
