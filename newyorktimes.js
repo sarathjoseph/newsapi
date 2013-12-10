@@ -4,9 +4,10 @@ var     request = require('request'),
 
 var		NTY_API_KEY = 'c3a958f43f94d1d39a6228faa8fe483b:11:68109101';
 var		response;
+var     parsedArticles;
 		
-var getData = function (query,callback) {
-		
+var getData = function (articles,query,callback) {
+		parsedArticles = articles;
         request.get('http://api.nytimes.com/svc/search/v2/articlesearch.json?q='+query+'&api-key='+NTY_API_KEY, function (error, response, body) {
 						
                         parse(query,body,callback);
@@ -15,10 +16,9 @@ var getData = function (query,callback) {
 }
 
 function parse(query,response,callback) {
-        jsonObject = JSON.parse(response);		
-        if (jsonObject["response"]){  
-		articles = jsonObject["response"]["docs"];
-		parsedArticles = new Array();		
+        var jsonObject = JSON.parse(response);		
+		var articles = jsonObject["response"]["docs"];
+			
 		
 		for (i = 0; i < articles.length; i++) {
             parsedArticle = {
@@ -34,10 +34,6 @@ function parse(query,response,callback) {
         }		
 		
 		callback(query, parsedArticles);
-    }else{
-
-        callback(query, new Array());
-    }
 }
 
 
