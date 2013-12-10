@@ -6,6 +6,7 @@
         var auth = require("./dboxauth.js");
         app.use(express.cookieParser());
         app.use(express.bodyParser());
+        app.use('/doc', express.static(__dirname + '/doc'));
         var dropbox = require('./dropbox-datastores-1.0-latest.js');
         var APP_KEY = "mmddg539ftzuqi3";
         var APP_SECRET = "c0pv47qtjbrs96c";
@@ -47,13 +48,13 @@
         }
 
 
-        app.configure(function () {
-            app.use(express.static(__dirname + '/public'));
+        // app.configure(function () {
+        //     app.use(express.static(__dirname + '/public'));
 
-            app.use(express.methodOverride());
+        //     app.use(express.methodOverride());
 
-            app.use(app.router);
-        });
+        //     app.use(app.router);
+        // });
 
 
 
@@ -162,6 +163,14 @@
 
         });
 
+        /**
+         * @api {get} /callback  Authentication callback
+         * @apiversion 0.0.1
+         * @apiName GetLoginCallback
+         * @apiGroup Authentication
+         *
+         * @apiDescription Dropbox will callback to this URI to complete the login process within the API.
+         */
         app.get('/callback', function (req, res) {
             auth.callback(req, res);
 
@@ -223,6 +232,68 @@
 
         }
 
+        /**
+         * @api {get} /query/:query Queries news sources and returns results from these sources.
+         * @apiversion 0.0.1
+         * @apiName GetQuery
+         * @apiGroup Query
+         *
+         * @apiParam {String} query A specific query.
+         *
+         * @apiSuccess {String} id Identifier of the search query.
+         * @apiSuccess {String[]} articles Articles with results in JSON.
+         *
+         * @apiSuccessExample Success-Response:
+         *     HTTP/1.1 200 OK
+         *     {
+         *          "id": "_17ahev6k9i0_js_kUa2d",
+         *          "articles": [
+         *          {
+         *            "url": "http://www.nytimes.com/2013/11/04/sports/baseball/in-rodriguez-arbitration-two-sides-play-hardball.html",
+         *            "source": "The New York Times",
+         *            "headline": "In Rodriguez Arbitration, Two Sides Play Hardball",
+         *            "snippet": "In the months since several players were linked to a Florida anti-aging clinic, Major League Baseball and Alex Rodriguez have engaged in a cloak-and-dagger struggle surpassing anything the sport has seen.",
+         *            "pub_date": "2013-11-04T00:00:00Z",
+         *            "section_name": "Sports",
+         *            "type_of_material": "News"
+         *          },
+         *          {
+         *            "url": "http://select.nytimes.com/gst/abstract.html?res=9D03E0DC1531E63ABC4952DFBE66838C649EDE",
+         *            "source": "The New York Times",
+         *            "headline": "Major Sports News",
+         *            "snippet": "Don Drysdale pitched a sevenhitter yesterday as the Dodgers shut out the Pirates, 3 to 0. The Yankees defeated the Orioles,...",
+         *            "pub_date": "1957-08-11T00:00:00Z",
+         *            "section_name": null,
+         *            "type_of_material": "Front Page"
+         *          },
+         *          {
+         *            "url": "http://www.nytimes.com/1985/11/15/sports/transactions-156837.html",
+         *            "source": "The New York Times",
+         *            "headline": "Transactions",
+         *            "snippet": "  BOSTON (AL) -Released Jim Dorsey, pitcher. Assigned Dave Sax, catcher, and LaSchelle Tarver and Gus Burgess, outfielders, to Pawtucket of the International League.",
+         *            "pub_date": "1985-11-15T00:00:00Z",
+         *            "section_name": "Sports",
+         *            "type_of_material": "List"
+         *          },
+         *          ...
+         *     }
+         *
+         * @apiError ArticlesNotFound The articles were not found.
+         *
+         * @apiErrorExample Error-Response:
+         *     HTTP/1.1 404 Not Found
+         *     {
+         *       "Articles Not Found"
+         *     }
+         *
+         * @apiError BadParameters Search used bad parameters.
+         *
+         * @apiErrorExample Error-Response:
+         *     HTTP/1.1 400 Bad Content
+         *     {
+         *       "Bad Parameters"
+         *     }
+         */
         app.get('/query/:query', function (req, res) {
 
             if (req.params.query) {
@@ -330,6 +401,45 @@
                 res.end();
             });
         });
+
+        /**
+         * @api {get} /searches Returns a list of searches
+         * @apiversion 0.0.1
+         * @apiName GetSearches
+         * @apiGroup Search
+         *
+         * @apiSuccess {String} id Identifier of the search query.
+         * @apiSuccess {String[]} data Data returned as stored results.
+         *
+         * @apiSuccessExample Success-Response:
+         *     HTTP/1.1 200 OK
+         *     {
+         *          "id": "_17ahd0srgi0_js_GXaeN",
+         *          "data": {
+         *              "date": "2013-11-07T00:22:12.200Z",
+         *              "query": "baseball",
+         *              "articles": [
+         *              {
+         *                  "url": "http://www.nytimes.com/2013/11/04/sports/baseball/in-rodriguez-arbitration-two-sides-play-hardball.html",
+         *                  "source": "The New York Times",
+         *                  "headline": "In Rodriguez Arbitration, Two Sides Play Hardball",
+         *                  "snippet": "In the months since several players were linked to a Florida anti-aging clinic, Major League Baseball and Alex Rodriguez have engaged in a cloak-and-dagger struggle surpassing anything the sport has seen.",
+         *                  "pub_date": "2013-11-04T00:00:00Z",
+         *                  "section_name": "Sports",
+         *                  "type_of_material": "News"
+         *              },
+         *              ...
+         *          }
+         *     }
+         *
+         * @apiError NoSearchesFound There are no searches stored.
+         *
+         * @apiErrorExample Error-Response:
+         *     HTTP/1.1 404 Not Found
+         *     {
+         *       "No searches found"
+         *     }
+         */
         app.get('/searches', function (req, res) {
             var now = new Date();
             log('History was retrived');
@@ -389,6 +499,27 @@
 
         });
 
+        /**
+         * @api {get} /folders Returns a list of folders
+         * @apiversion 0.0.1
+         * @apiName GetFolders
+         * @apiGroup Folders
+         *
+         * @apiSuccess {String[]} data Results within a specific folder in form of JSON.
+         *
+         * @apiSuccessExample Success-Response:
+         *     HTTP/1.1 200 OK
+         *     {
+         *     }
+         *
+         * @apiError NoFoldersFound There are no folders found.
+         *
+         * @apiErrorExample Error-Response:
+         *     HTTP/1.1 404 Not Found
+         *     {
+         *       "No Folders found"
+         *     }
+         */
         app.get('/folders', function (req, res) {
 
             res.setHeader('Content-Type', 'text/json');
@@ -412,6 +543,29 @@
 
         });
 
+        /**
+         * @api {get} /folders/:id Returns results from a specific folder
+         * @apiversion 0.0.1
+         * @apiName GetFoldersWithId
+         * @apiGroup Folders
+         *
+         * @apiParam {String} id A specific identifier.
+         *
+         * @apiSuccess {String[]} data Results within a specific folder in form of JSON.
+         *
+         * @apiSuccessExample Success-Response:
+         *     HTTP/1.1 200 OK
+         *     {
+         *     }
+         *
+         * @apiError NoSearchesFound There are no searches stored.
+         *
+         * @apiErrorExample Error-Response:
+         *     HTTP/1.1 404 Not Found
+         *     {
+         *       "Folder '3' Not Found"
+         *     }
+         */
         app.get('/folders/:id', function (req, res) {
 
 
