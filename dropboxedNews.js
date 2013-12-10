@@ -82,8 +82,6 @@
          *  {
          *     "Access denied"
          *  }
-         *
-         * @apiDescription Login user
          */
         app.post('/login', function (req, res) {
 
@@ -163,8 +161,6 @@
          *  {
          *     "Invalid Parameters."
          *  }
-         *
-         * @apiDescription Registers user
          */
         app.post('/register', function (req, res) {
 
@@ -214,8 +210,6 @@
          * @apiversion 0.0.2
          * @apiName GetAdminLogin
          * @apiGroup Admin
-         *
-         * @apiDescription Admin login
          */
         app.get('/admin/login', function (req, res) {
 
@@ -236,7 +230,7 @@
         });
 
         /**
-         * @api {get} / Base API URI
+         * @api {get} / Base URL
          * @apiversion 0.0.2
          * @apiName GetBase
          * @apiGroup General
@@ -360,8 +354,6 @@
          *     {
          *       "Bad Parameters"
          *     }
-         *
-         * @apiDescription Queries news sources and returns results from these sources.
          */
         app.get('/query/:query', function (req, res) {
 
@@ -434,8 +426,6 @@
          *  {
          *     "Invalid Parameters."
          *  }
-         *
-         * @apiDescription Queries news sources and returns results from these sources.
          */
         app.post('/searches/save', function (req, res) {
 
@@ -548,8 +538,6 @@
          *     {
          *       "No searches found"
          *     }
-         *
-         * @apiDescription Queries news sources and returns results from these sources.
          */
         app.get('/searches', function (req, res) {
             var now = new Date();
@@ -590,8 +578,6 @@
          *     {
          *          "test Table records deleted"
          *     }
-         *
-         * @apiDescription Queries news sources and returns results from these sources.
          */
         app.get('/admin/delete/records/:table', function (req, res) {
 
@@ -624,8 +610,6 @@
          *     {
          *          "test record deleted"
          *     }
-         *
-         * @apiDescription Queries news sources and returns results from these sources.
          */
         app.get('/admin/delete/records/:table/:id', function (req, res) {
 
@@ -663,8 +647,6 @@
          *     {
          *       "No Folders found"
          *     }
-         *
-         * @apiDescription Queries news sources and returns results from these sources.
          */
         app.get('/folders', function (req, res) {
 
@@ -715,8 +697,6 @@
          *     {
          *       "Folder '3' Not Found"
          *     }
-         *
-         * @apiDescription Queries news sources and returns results from these sources.
          */
         app.get('/folders/:id', function (req, res) {
 
@@ -778,8 +758,6 @@
          *     {
          *       "Folder '3' Not Found"
          *     }
-         *
-         * @apiDescription Results are shown from a specific folder
          */
         app.get('/folders/:id/users/:user', function (req, res) {
 
@@ -821,7 +799,7 @@
          * @api {get} /user/:user/favourites Returns user's saved searches as favourites
          * @apiversion 0.0.2
          * @apiName GetUserFavourites
-         * @apiGroup Ussr
+         * @apiGroup User
          *
          * @apiParam {String} user A specific user.
          *
@@ -842,8 +820,6 @@
          *     {
          *       "Folder for 'test' Not Found"
          *     }
-         *
-         * @apiDescription Show all favourites for a specifc users
          */
         app.get('/user/:user/favourites', function (req, res) {
 
