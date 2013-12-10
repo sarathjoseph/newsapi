@@ -58,7 +58,33 @@
 
 
 
-
+        /**
+         * @api {post} /login Authenticates user
+         * @apiversion 0.0.2
+         * @apiName PostLogin
+         * @apiGroup Authentication
+         *
+         * @apiParam {String} username Username
+         * @apiParam {String} password Password
+         *
+         * @apiSuccess {String} user Username
+         *
+         * @apiSuccessExample Success-Response:
+         *  HTTP/1.1 200 OK
+         *  {
+         *      "user": "test"
+         *  }      
+         *
+         * @apiError AccessDenied Access is denied -- wrong username / password
+         *
+         * @apiErrorExample Error-Response:
+         *  HTTP/1.1 403 Forbidden
+         *  {
+         *     "Access denied"
+         *  }
+         *
+         * @apiDescription Login user
+         */
         app.post('/login', function (req, res) {
 
             res.setHeader('Content-Type', 'text/json');
@@ -105,7 +131,41 @@
 
         });
 
-
+        /**
+         * @api {post} /register Register user
+         * @apiversion 0.0.2
+         * @apiName PostRegister
+         * @apiGroup Authentication
+         *
+         * @apiParam {String} username Username
+         * @apiParam {String} password Password
+         *
+         * @apiSuccess {String} user Username
+         *
+         * @apiSuccessExample Success-Response:
+         *  HTTP/1.1 200 OK
+         *  {
+         *      "user": "test"
+         *  }      
+         *
+         * @apiError UserExists User already exists in the database
+         *
+         * @apiErrorExample Error-Response:
+         *  HTTP/1.1 400 Bad Content
+         *  {
+         *     "User Exists"
+         *  }
+         *
+         * @apiError InvalidParams Parameters supplied were invalid
+         *
+         * @apiErrorExample Error-Response:
+         *  HTTP/1.1 400 Bad Content
+         *  {
+         *     "Invalid Parameters."
+         *  }
+         *
+         * @apiDescription Registers user
+         */
         app.post('/register', function (req, res) {
 
 
@@ -140,42 +200,49 @@
                     });
                     console.log("user " + username + " registered");
 
-
                 }
-
-
-
 
             } else {
                 res.send(400, 'Invalid Parameters.');
                 log('Save: Invalid Parameters.');
             }
-
-
-
-
         });
 
+
+        /**
+         * @api {get} /admin/login Authenticates admin
+         * @apiversion 0.0.2
+         * @apiName GetAdminLogin
+         * @apiGroup Admin
+         *
+         * @apiDescription Admin login
+         */
         app.get('/admin/login', function (req, res) {
 
             auth.login(req, res);
 
-
         });
 
         /**
-         * @api {get} /callback  Authentication callback
-         * @apiversion 0.0.1
-         * @apiName GetLoginCallback
+         * @api {get} /callback  Dropbox authentication callback
+         * @apiversion 0.0.2
+         * @apiName GetDropboxCallback
          * @apiGroup Authentication
          *
-         * @apiDescription Dropbox will callback to this URI to complete the login process within the API.
+         * @apiDescription Dropbox will callback to this URI to continue working with the API.
          */
         app.get('/callback', function (req, res) {
             auth.callback(req, res);
-
         });
 
+        /**
+         * @api {get} / Base API URI
+         * @apiversion 0.0.2
+         * @apiName GetBase
+         * @apiGroup General
+         *
+         * @apiDescription Basic page showing all folders and searches
+         */
         app.get('/', function (req, res) {
             res.sendfile('./index.html');
 
@@ -234,7 +301,7 @@
 
         /**
          * @api {get} /query/:query Queries news sources and returns results from these sources.
-         * @apiversion 0.0.1
+         * @apiversion 0.0.2
          * @apiName GetQuery
          * @apiGroup Query
          *
@@ -293,6 +360,8 @@
          *     {
          *       "Bad Parameters"
          *     }
+         *
+         * @apiDescription Queries news sources and returns results from these sources.
          */
         app.get('/query/:query', function (req, res) {
 
@@ -325,6 +394,49 @@
         });
 
 
+        /**
+         * @api {post} /searches/save Saves a specific search result by id into a folder for the logged in user
+         * @apiversion 0.0.2
+         * @apiName PostSearchSave
+         * @apiGroup Query
+         *
+         * @apiParam {String} user The logged in user
+         * @apiParam {String} index Location in folder
+         * @apiParam {String} folder Name of folder to store results in
+         * @apiParam {String} id Id of article
+         *
+         * @apiSuccessExample Success-Response:
+         *     HTTP/1.1 200 OK
+         *     {
+         *         "Index:'3' of search '_17d4oe6o278_js_xM0uG' saved"
+         *     }
+         *
+         * @apiError URLAlreadySaved URL is already saved in a folder
+         *
+         * @apiErrorExample Error-Response:
+         *     HTTP/1.1 400 Bad Content
+         *     {
+         *       "URL already saved"
+         *     }
+         *
+         * @apiError SearchIdNotFound Cannot find search results to store.
+         *
+         * @apiErrorExample Error-Response:
+         *     HTTP/1.1 404 Not Found
+         *     {
+         *       "Search Id Not Found"
+         *     }
+         *
+         * @apiError InvalidParams Parameters supplied were invalid
+         *
+         * @apiErrorExample Error-Response:
+         *  HTTP/1.1 400 Bad Content
+         *  {
+         *     "Invalid Parameters."
+         *  }
+         *
+         * @apiDescription Queries news sources and returns results from these sources.
+         */
         app.post('/searches/save', function (req, res) {
 
             res.setHeader('Content-Type', 'text/json');
@@ -384,27 +496,24 @@
             }
         });
 
+        // app.get('/admin/docs', function (req, res) {
+        //     log('Docs requested');
+        //     var docs;
+        //     var fs = require('fs');
 
-
-
-        app.get('/admin/docs', function (req, res) {
-            log('Docs requested');
-            var docs;
-            var fs = require('fs');
-
-            fs.readFile('./public/docs.txt', function (err, data) {
-                if (err) {
-                    throw err;
-                }
-                docs = data;
-                res.write(docs);
-                res.end();
-            });
-        });
+        //     fs.readFile('./public/docs.txt', function (err, data) {
+        //         if (err) {
+        //             throw err;
+        //         }
+        //         docs = data;
+        //         res.write(docs);
+        //         res.end();
+        //     });
+        // });
 
         /**
          * @api {get} /searches Returns a list of searches
-         * @apiversion 0.0.1
+         * @apiversion 0.0.2
          * @apiName GetSearches
          * @apiGroup Search
          *
@@ -439,6 +548,8 @@
          *     {
          *       "No searches found"
          *     }
+         *
+         * @apiDescription Queries news sources and returns results from these sources.
          */
         app.get('/searches', function (req, res) {
             var now = new Date();
@@ -466,6 +577,22 @@
 
         });
 
+        /**
+         * @api {get} /admin/delete/records/:table Deletes table records
+         * @apiversion 0.0.2
+         * @apiName GetDeleteTableRecords
+         * @apiGroup Admin
+         *
+         * @apiSuccess {String} table Table name.
+         *
+         * @apiSuccessExample Success-Response:
+         *     HTTP/1.1 200 OK
+         *     {
+         *          "test Table records deleted"
+         *     }
+         *
+         * @apiDescription Queries news sources and returns results from these sources.
+         */
         app.get('/admin/delete/records/:table', function (req, res) {
 
 
@@ -483,6 +610,23 @@
 
         });
 
+        /**
+         * @api {get} /admin/delete/records/:table/:id Deletes table records with a specific id
+         * @apiversion 0.0.2
+         * @apiName GetDeleteTableRecordsWithId
+         * @apiGroup Admin
+         *
+         * @apiSuccess {String} table Table name.
+         * @apiSuccess {String} id A specific identifier.
+         *
+         * @apiSuccessExample Success-Response:
+         *     HTTP/1.1 200 OK
+         *     {
+         *          "test record deleted"
+         *     }
+         *
+         * @apiDescription Queries news sources and returns results from these sources.
+         */
         app.get('/admin/delete/records/:table/:id', function (req, res) {
 
 
@@ -501,7 +645,7 @@
 
         /**
          * @api {get} /folders Returns a list of folders
-         * @apiversion 0.0.1
+         * @apiversion 0.0.2
          * @apiName GetFolders
          * @apiGroup Folders
          *
@@ -519,6 +663,8 @@
          *     {
          *       "No Folders found"
          *     }
+         *
+         * @apiDescription Queries news sources and returns results from these sources.
          */
         app.get('/folders', function (req, res) {
 
@@ -545,7 +691,7 @@
 
         /**
          * @api {get} /folders/:id Returns results from a specific folder
-         * @apiversion 0.0.1
+         * @apiversion 0.0.2
          * @apiName GetFoldersWithId
          * @apiGroup Folders
          *
@@ -554,17 +700,23 @@
          * @apiSuccess {String[]} data Results within a specific folder in form of JSON.
          *
          * @apiSuccessExample Success-Response:
-         *     HTTP/1.1 200 OK
-         *     {
-         *     }
+         *      HTTP/1.1 200 OK
+         *      {
+         *          "id": "_17d4ognvln8_js_qWs97",
+         *          "date": "2013-12-10T03:58:53.409Z",
+         *          "user": "test",
+         *          "article": "\"http://select.nytimes.com/gst/abstract.html?res=9900E6D6163EEE3BBC4950DFB667838D629EDE\""
+         *      }
          *
-         * @apiError NoSearchesFound There are no searches stored.
+         * @apiError FolderNotFound Folder not found.
          *
          * @apiErrorExample Error-Response:
          *     HTTP/1.1 404 Not Found
          *     {
          *       "Folder '3' Not Found"
          *     }
+         *
+         * @apiDescription Queries news sources and returns results from these sources.
          */
         app.get('/folders/:id', function (req, res) {
 
@@ -599,6 +751,36 @@
 
         });
 
+        /**
+         * @api {get} /folders/:id/users/:user Returns results from a specific folder stored by a user
+         * @apiversion 0.0.2
+         * @apiName GetFoldersWithIdWithUser
+         * @apiGroup Folders
+         *
+         * @apiParam {String} id A specific identifier.
+         * @apiParam {String} user A specific user.
+         *
+         * @apiSuccess {String[]} data Results within a specific folder in form of JSON.
+         *
+         * @apiSuccessExample Success-Response:
+         *      HTTP/1.1 200 OK
+         *      {
+         *          "id": "_17d4ognvln8_js_qWs97",
+         *          "date": "2013-12-10T03:58:53.409Z",
+         *          "user": "test",
+         *          "article": "\"http://select.nytimes.com/gst/abstract.html?res=9900E6D6163EEE3BBC4950DFB667838D629EDE\""
+         *      }
+         *
+         * @apiError FolderNotFound Folder not found.
+         *
+         * @apiErrorExample Error-Response:
+         *     HTTP/1.1 404 Not Found
+         *     {
+         *       "Folder '3' Not Found"
+         *     }
+         *
+         * @apiDescription Results are shown from a specific folder
+         */
         app.get('/folders/:id/users/:user', function (req, res) {
 
 
@@ -635,8 +817,35 @@
         });
 
 
-
-        app.get('/user/:user/favourites/', function (req, res) {
+        /**
+         * @api {get} /user/:user/favourites Returns user's saved searches as favourites
+         * @apiversion 0.0.2
+         * @apiName GetUserFavourites
+         * @apiGroup Ussr
+         *
+         * @apiParam {String} user A specific user.
+         *
+         * @apiSuccess {String[]} data Results within a specific folder in form of JSON.
+         *
+         * @apiSuccessExample Success-Response:
+         *      HTTP/1.1 200 OK
+         *      {
+         *          "date": "2013-12-10T03:58:53.409Z",
+         *          "article": "\"http://select.nytimes.com/gst/abstract.html?res=9900E6D6163EEE3BBC4950DFB667838D629EDE\"",
+         *          "folder": "sports"
+         *      }
+         *
+         * @apiError FolderNotFound User's folder not found.
+         *
+         * @apiErrorExample Error-Response:
+         *     HTTP/1.1 404 Not Found
+         *     {
+         *       "Folder for 'test' Not Found"
+         *     }
+         *
+         * @apiDescription Show all favourites for a specifc users
+         */
+        app.get('/user/:user/favourites', function (req, res) {
 
             var user = req.params.user;
 
@@ -664,6 +873,14 @@
             }
         });
 
+        /**
+         * @api {get} /docs API Documentation
+         * @apiversion 0.0.2
+         * @apiName GetDocs
+         * @apiGroup General
+         *
+         * @apiDescription Documentation about the API including success results and errors.
+         */
         app.get('/docs', function(req, res){
             res.redirect('doc/index.html');
         });
